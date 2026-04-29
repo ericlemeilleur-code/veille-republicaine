@@ -485,6 +485,20 @@ main {
   </div>
 </section>
 
+<!-- ══ IMPORT VEILLE ══ -->
+<div style="margin-top: 28px; max-width: 720px;">
+  <div class="form-card">
+    <div class="form-title" style="font-size:17px;">Import veille Claude</div>
+    <div class="form-sub">Collez ici le JSON fourni par Claude après une veille automatique, puis cliquez sur Importer.</div>
+    <div class="form-row">
+      <label>JSON de la veille</label>
+      <textarea id="import-json" style="height:140px;font-family:monospace;font-size:12px;" placeholder='[{"date_fait":"2026-04-29","source":"...","titre":"...","description":"...","axe":"B","personnalite":"...","positionnement":"Proche"}]'></textarea>
+    </div>
+    <button class="btn-primary" id="import-btn" onclick="importVeille()">Importer dans la base</button>
+    <div class="form-feedback" id="import-fb"></div>
+  </div>
+</div>
+
 <!-- ══ GRILLE ══ -->
 <section class="section" id="s-grille">
   <div class="grille-grid" id="grille-list"></div>
@@ -729,6 +743,37 @@ function saveAuthor() {
   const s = document.getElementById('author-saved');
   s.style.display = 'inline';
   setTimeout(() => s.style.display = 'none', 2000);
+}
+
+async function importVeille() {
+  const raw = document.getElementById('import-json').value.trim();
+  if (!raw) { showImportFb('Collez d\'abord le JSON fourni par Claude.', false); return; }
+  let items;
+  try { items = JSON.parse(raw); } catch(e) { showImportFb('JSON invalide. Vérifiez le format.', false); return; }
+  if (!Array.isArray(items)) items = [items];
+  const btn = document.getElementById('import-btn');
+  btn.disabled = true; btn.textContent = 'Import en cours…';
+  let ok = 0, err = 0;
+  for (const item of items) {
+    try {
+      await api('POST', 'faits', { ...item, auteur: item.auteur || 'Claude (veille automatique)' });
+      ok++;
+    } catch(e) { err++; }
+  }
+  btn.disabled = false; btn.textContent = 'Importer dans la base';
+  if (err === 0) {
+    document.getElementById('import-json').value = '';
+    showImportFb(`${ok} fait${ok>1?'s':''} importé${ok>1?'s':''} avec succès.`, true);
+    await loadFaits();
+  } else {
+    showImportFb(`${ok} importé${ok>1?'s':''}, ${err} erreur${err>1?'s':''}.`, false);
+  }
+}
+function showImportFb(msg, ok) {
+  const el = document.getElementById('import-fb');
+  el.textContent = msg;
+  el.className = 'form-feedback ' + (ok ? 'ok' : 'err');
+  if (ok) setTimeout(() => el.textContent = '', 5000);
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────
