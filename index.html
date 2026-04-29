@@ -381,6 +381,30 @@ main {
   .header-inner { padding: 0 16px; }
   main { padding: 20px 16px 48px; }
 }
+
+/* ── Présidentielle ── */
+.pres-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: fadeIn .25s ease;
+}
+.pres-header { display: flex; align-items: center; gap: 12px; }
+.pres-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.pres-name { font-size: 15px; font-weight: 600; line-height: 1.3; }
+.pres-parti { font-size: 11px; color: var(--gris-5); margin-top: 2px; }
+.pres-axes { display: flex; flex-direction: column; gap: 8px; }
+.pres-axe { display: flex; align-items: flex-start; gap: 8px; }
+.pres-axe-txt { font-size: 12px; color: var(--gris-5); line-height: 1.5; flex: 1; }
+.pres-footer { border-top: 1px solid var(--gris-1); padding-top: 10px; }
 </style>
 </head>
 <body>
@@ -401,6 +425,7 @@ main {
     <nav class="nav">
       <button class="nav-btn active" onclick="showSection('journal')">Journal</button>
       <button class="nav-btn" onclick="showSection('personnalites')">Personnalités</button>
+      <button class="nav-btn" onclick="showSection('presidentielle')">🗳 2027</button>
       <button class="nav-btn" onclick="showSection('saisir')">+ Saisir</button>
       <button class="nav-btn" onclick="showSection('grille')">Charte</button>
     </nav>
@@ -439,6 +464,182 @@ main {
   <div id="journal-list"><div class="loading">Chargement…</div></div>
 </section>
 
+<!-- ══ PRÉSIDENTIELLE 2027 ══ -->
+<section class="section" id="s-presidentielle">
+  <div style="margin-bottom:24px;">
+    <p style="font-size:13px;color:var(--gris-5);line-height:1.6;max-width:720px;">Évaluation factuelle et non partisane des candidats déclarés ou probables à la présidentielle 2027, au regard des 6 axes de la Charte des droits et devoirs du citoyen français. Chaque fiche est mise à jour par la veille au fil de l'actualité.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;" id="pres-list">
+
+    <!-- ── Marine Le Pen ── -->
+    <div class="pres-card" data-candidat="Marine Le Pen">
+      <div class="pres-header">
+        <div class="pres-avatar" style="background:#fdeaea;color:#a32d2d;">ML</div>
+        <div>
+          <div class="pres-name">Marine Le Pen</div>
+          <div class="pres-parti">Rassemblement national</div>
+        </div>
+        <span class="badge badge-éloigné" style="margin-left:auto;">Éloigné</span>
+      </div>
+      <div class="pres-axes">
+        <div class="pres-axe"><span class="axe-pill axe-A" style="cursor:default;font-size:10px;">Axe A</span><span class="pres-axe-txt">Positions favorables à des statuts territoriaux différenciés (autonomie régionale) et à une préférence nationale contraire à l'égalité républicaine.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-B" style="cursor:default;font-size:10px;">Axe B</span><span class="pres-axe-txt">Discours sur l'islam et le voile dans l'espace public ambigus au regard de la neutralité laïque ; la laïcité est invoquée de façon sélective.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-C" style="cursor:default;font-size:10px;">Axe C</span><span class="pres-axe-txt">Condamnée en mars 2025 pour détournement de fonds publics en première instance — atteinte à l'État de droit.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-D" style="cursor:default;font-size:10px;">Axe D</span><span class="pres-axe-txt">Préférence nationale contraire au principe d'égalité des citoyens devant la loi sans distinction d'origine.</span></div>
+      </div>
+      <div class="pres-footer">
+        <button class="btn-sm" onclick="filtrerCandidatJournal('Marine Le Pen')">Voir les faits ↗</button>
+      </div>
+    </div>
+
+    <!-- ── Jordan Bardella ── -->
+    <div class="pres-card" data-candidat="Jordan Bardella">
+      <div class="pres-header">
+        <div class="pres-avatar" style="background:#fdeaea;color:#a32d2d;">JB</div>
+        <div>
+          <div class="pres-name">Jordan Bardella</div>
+          <div class="pres-parti">Rassemblement national</div>
+        </div>
+        <span class="badge badge-éloigné" style="margin-left:auto;">Éloigné</span>
+      </div>
+      <div class="pres-axes">
+        <div class="pres-axe"><span class="axe-pill axe-A" style="cursor:default;font-size:10px;">Axe A</span><span class="pres-axe-txt">Programme prônant la « préférence nationale », incompatible avec le principe d'indivisibilité et d'égalité républicaine.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-D" style="cursor:default;font-size:10px;">Axe D</span><span class="pres-axe-txt">Distinction entre citoyens selon l'origine pour l'accès aux prestations sociales, contraire à l'égalité devant la loi.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-F" style="cursor:default;font-size:10px;">Axe F</span><span class="pres-axe-txt">Discours sur l'immigration fragilisant la cohésion sociale et la fraternité républicaine.</span></div>
+      </div>
+      <div class="pres-footer">
+        <button class="btn-sm" onclick="filtrerCandidatJournal('Jordan Bardella')">Voir les faits ↗</button>
+      </div>
+    </div>
+
+    <!-- ── Édouard Philippe ── -->
+    <div class="pres-card" data-candidat="Édouard Philippe">
+      <div class="pres-header">
+        <div class="pres-avatar" style="background:#faeeda;color:#633806;">EP</div>
+        <div>
+          <div class="pres-name">Édouard Philippe</div>
+          <div class="pres-parti">Horizons / Centre-droit</div>
+        </div>
+        <span class="badge badge-ambigu" style="margin-left:auto;">Ambigu</span>
+      </div>
+      <div class="pres-axes">
+        <div class="pres-axe"><span class="axe-pill axe-C" style="cursor:default;font-size:10px;">Axe C</span><span class="pres-axe-txt">Attachement affiché à l'État de droit et aux institutions républicaines, cohérent avec son parcours de Premier ministre.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-B" style="cursor:default;font-size:10px;">Axe B</span><span class="pres-axe-txt">Position laïque classique, sans signaux négatifs notables sur la séparation Églises/État.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-A" style="cursor:default;font-size:10px;">Axe A</span><span class="pres-axe-txt">Soutien au projet d'autonomie corse du gouvernement Macron, potentiellement en tension avec l'indivisibilité de la République.</span></div>
+      </div>
+      <div class="pres-footer">
+        <button class="btn-sm" onclick="filtrerCandidatJournal('Édouard Philippe')">Voir les faits ↗</button>
+      </div>
+    </div>
+
+    <!-- ── Jean-Luc Mélenchon ── -->
+    <div class="pres-card" data-candidat="Jean-Luc Mélenchon">
+      <div class="pres-header">
+        <div class="pres-avatar" style="background:#faeeda;color:#633806;">JM</div>
+        <div>
+          <div class="pres-name">Jean-Luc Mélenchon</div>
+          <div class="pres-parti">La France Insoumise</div>
+        </div>
+        <span class="badge badge-ambigu" style="margin-left:auto;">Ambigu</span>
+      </div>
+      <div class="pres-axes">
+        <div class="pres-axe"><span class="axe-pill axe-C" style="cursor:default;font-size:10px;">Axe C</span><span class="pres-axe-txt">Défense des libertés fondamentales et de l'État de droit affichée, mais rhétorique contestant la légitimité des institutions dans certains contextes.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-B" style="cursor:default;font-size:10px;">Axe B</span><span class="pres-axe-txt">Position ambiguë sur la laïcité : défense de la loi de 1905 d'un côté, mais critiques récurrentes des applications de la laïcité jugées discriminatoires.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-E" style="cursor:default;font-size:10px;">Axe E</span><span class="pres-axe-txt">Défense de la liberté de la presse et d'expression, mais tensions avec certains médias et journalistes.</span></div>
+      </div>
+      <div class="pres-footer">
+        <button class="btn-sm" onclick="filtrerCandidatJournal('Jean-Luc Mélenchon')">Voir les faits ↗</button>
+      </div>
+    </div>
+
+    <!-- ── François Ruffin ── -->
+    <div class="pres-card" data-candidat="François Ruffin">
+      <div class="pres-header">
+        <div class="pres-avatar" style="background:#eaf3de;color:#2d5a0e;">FR</div>
+        <div>
+          <div class="pres-name">François Ruffin</div>
+          <div class="pres-parti">Debout ! / Primaire de gauche</div>
+        </div>
+        <span class="badge badge-proche" style="margin-left:auto;">Proche</span>
+      </div>
+      <div class="pres-axes">
+        <div class="pres-axe"><span class="axe-pill axe-C" style="cursor:default;font-size:10px;">Axe C</span><span class="pres-axe-txt">Attachement aux institutions républicaines et au suffrage universel, défense du Parlement comme lieu du débat démocratique.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-F" style="cursor:default;font-size:10px;">Axe F</span><span class="pres-axe-txt">Programme centré sur la cohésion sociale, les services publics et la solidarité nationale, conforme à l'axe fraternité.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-E" style="cursor:default;font-size:10px;">Axe E</span><span class="pres-axe-txt">Journaliste de formation, défenseur historique de la liberté de la presse et du journalisme d'investigation.</span></div>
+      </div>
+      <div class="pres-footer">
+        <button class="btn-sm" onclick="filtrerCandidatJournal('François Ruffin')">Voir les faits ↗</button>
+      </div>
+    </div>
+
+    <!-- ── Marine Tondelier ── -->
+    <div class="pres-card" data-candidat="Marine Tondelier">
+      <div class="pres-header">
+        <div class="pres-avatar" style="background:#eaf3de;color:#2d5a0e;">MT</div>
+        <div>
+          <div class="pres-name">Marine Tondelier</div>
+          <div class="pres-parti">Les Écologistes / Primaire de gauche</div>
+        </div>
+        <span class="badge badge-proche" style="margin-left:auto;">Proche</span>
+      </div>
+      <div class="pres-axes">
+        <div class="pres-axe"><span class="axe-pill axe-D" style="cursor:default;font-size:10px;">Axe D</span><span class="pres-axe-txt">Défense de l'égalité des droits sans distinction d'origine ou de genre, cohérente avec la charte.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-C" style="cursor:default;font-size:10px;">Axe C</span><span class="pres-axe-txt">Engagement pour le renforcement des institutions démocratiques, porteur d'une primaire pluraliste à gauche.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-B" style="cursor:default;font-size:10px;">Axe B</span><span class="pres-axe-txt">Position laïque affirmée, sans ambiguïté notable sur la séparation Églises/État dans ses prises de position publiques.</span></div>
+      </div>
+      <div class="pres-footer">
+        <button class="btn-sm" onclick="filtrerCandidatJournal('Marine Tondelier')">Voir les faits ↗</button>
+      </div>
+    </div>
+
+    <!-- ── Laurent Wauquiez ── -->
+    <div class="pres-card" data-candidat="Laurent Wauquiez">
+      <div class="pres-header">
+        <div class="pres-avatar" style="background:#faeeda;color:#633806;">LW</div>
+        <div>
+          <div class="pres-name">Laurent Wauquiez</div>
+          <div class="pres-parti">LR / Droite</div>
+        </div>
+        <span class="badge badge-ambigu" style="margin-left:auto;">Ambigu</span>
+      </div>
+      <div class="pres-axes">
+        <div class="pres-axe"><span class="axe-pill axe-B" style="cursor:default;font-size:10px;">Axe B</span><span class="pres-axe-txt">Invoque la laïcité de façon sélective, principalement dirigée contre l'islam, s'éloignant de la neutralité universelle.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-D" style="cursor:default;font-size:10px;">Axe D</span><span class="pres-axe-txt">Discours sur l'immigration qui tend à distinguer les citoyens selon leur origine, en tension avec le principe d'égalité.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-C" style="cursor:default;font-size:10px;">Axe C</span><span class="pres-axe-txt">Attachement proclamé aux institutions républicaines, cohérent avec son ancrage dans la droite républicaine traditionnelle.</span></div>
+      </div>
+      <div class="pres-footer">
+        <button class="btn-sm" onclick="filtrerCandidatJournal('Laurent Wauquiez')">Voir les faits ↗</button>
+      </div>
+    </div>
+
+    <!-- ── Dominique de Villepin ── -->
+    <div class="pres-card" data-candidat="Dominique de Villepin">
+      <div class="pres-header">
+        <div class="pres-avatar" style="background:#eaf3de;color:#2d5a0e;">DV</div>
+        <div>
+          <div class="pres-name">Dominique de Villepin</div>
+          <div class="pres-parti">La France humaniste</div>
+        </div>
+        <span class="badge badge-proche" style="margin-left:auto;">Proche</span>
+      </div>
+      <div class="pres-axes">
+        <div class="pres-axe"><span class="axe-pill axe-A" style="cursor:default;font-size:10px;">Axe A</span><span class="pres-axe-txt">Discours gaulliste centré sur l'unité nationale et la souveraineté, conforme au principe d'indivisibilité.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-C" style="cursor:default;font-size:10px;">Axe C</span><span class="pres-axe-txt">Respect affiché des institutions et de l'État de droit, parcours de haut fonctionnaire et Premier ministre sans écart notable.</span></div>
+        <div class="pres-axe"><span class="axe-pill axe-E" style="cursor:default;font-size:10px;">Axe E</span><span class="pres-axe-txt">Défense des libertés fondamentales dans ses prises de position publiques, notamment sur la scène internationale.</span></div>
+      </div>
+      <div class="pres-footer">
+        <button class="btn-sm" onclick="filtrerCandidatJournal('Dominique de Villepin')">Voir les faits ↗</button>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="margin-top:20px;font-size:12px;color:var(--gris-3);max-width:720px;">
+    ⚠️ Ces évaluations sont établies à partir de positions publiques documentées, de façon factuelle et non partisane. Elles sont amenées à évoluer au fil de la veille. Le bouton « Voir les faits » filtre le journal sur les faits enregistrés pour chaque candidat.
+  </p>
+</section>
+
 <!-- ══ PERSONNALITÉS ══ -->
 <section class="section" id="s-personnalites">
   <div id="perso-list" class="perso-grid"><div class="loading">Chargement…</div></div>
@@ -456,7 +657,7 @@ main {
     <div class="form-sub">Le fait sera publié dans la base partagée et signé de votre nom.</div>
     <div class="form-grid">
       <div class="form-row"><label>Date du fait</label><input type="date" id="f-date"></div>
-      <div class="form-row"><label>Source</label><input type="text" id="f-source" placeholder="Le Monde, LCP, AFP…"></div>
+      <div class="form-row"><label>Source (URL ou nom)</label><input type="text" id="f-source" placeholder="https://lemonde.fr/… ou Le Monde, AFP…"></div>
     </div>
     <div class="form-row"><label>Titre du fait</label><input type="text" id="f-titre" placeholder="Intitulé court du fait observé"></div>
     <div class="form-row"><label>Description et analyse</label><textarea id="f-body" placeholder="Décrivez le fait et expliquez pourquoi il concerne la charte…"></textarea></div>
@@ -483,21 +684,20 @@ main {
     <button class="btn-primary" id="submit-btn" onclick="submitFait()">Publier dans la base partagée</button>
     <div class="form-feedback" id="form-fb"></div>
   </div>
-</section>
 
-<!-- ══ IMPORT VEILLE ══ -->
-<div style="margin-top: 28px; max-width: 720px;">
-  <div class="form-card">
-    <div class="form-title" style="font-size:17px;">Import veille Claude</div>
-    <div class="form-sub">Collez ici le JSON fourni par Claude après une veille automatique, puis cliquez sur Importer.</div>
-    <div class="form-row">
-      <label>JSON de la veille</label>
-      <textarea id="import-json" style="height:140px;font-family:monospace;font-size:12px;" placeholder='[{"date_fait":"2026-04-29","source":"...","titre":"...","description":"...","axe":"B","personnalite":"...","positionnement":"Proche"}]'></textarea>
+  <div style="margin-top: 24px; max-width: 720px;">
+    <div class="form-card">
+      <div class="form-title" style="font-size:17px;">Import veille Claude</div>
+      <div class="form-sub">Collez ici le JSON fourni par Claude après une veille automatique, puis cliquez sur Importer.</div>
+      <div class="form-row">
+        <label>JSON de la veille</label>
+        <textarea id="import-json" style="height:140px;font-family:monospace;font-size:12px;" placeholder='[{"date_fait":"2026-04-29","source":"https://...","titre":"...","description":"...","axe":"B","personnalite":"...","positionnement":"Proche"}]'></textarea>
+      </div>
+      <button class="btn-primary" id="import-btn" onclick="importVeille()">Importer dans la base</button>
+      <div class="form-feedback" id="import-fb"></div>
     </div>
-    <button class="btn-primary" id="import-btn" onclick="importVeille()">Importer dans la base</button>
-    <div class="form-feedback" id="import-fb"></div>
   </div>
-</div>
+</section>
 
 <!-- ══ GRILLE ══ -->
 <section class="section" id="s-grille">
@@ -581,10 +781,15 @@ function renderJournal() {
     const axeLabel = AXES[f.axe] ? AXES[f.axe].label : '';
     const dateStr = f.date_fait ? new Date(f.date_fait).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'}) : '';
     const canDel = f.auteur && f.auteur === author;
+    const sourceHtml = f.source
+      ? (f.source.startsWith('http')
+          ? `<a href="${f.source}" target="_blank" rel="noopener" class="fait-source" style="color:inherit;text-decoration:underline;text-underline-offset:2px;">— ${f.source}</a>`
+          : `<span class="fait-source">— ${f.source}</span>`)
+      : '';
     return `<div class="fait-card ${pos}">
       <div class="fait-meta">
         <span class="fait-date">${dateStr}</span>
-        ${f.source ? `<span class="fait-source">— ${f.source}</span>` : ''}
+        ${sourceHtml}
       </div>
       <div class="fait-titre">${f.titre || ''}</div>
       <div class="fait-body">${f.description || ''}</div>
@@ -701,9 +906,15 @@ async function deleteFait(id) {
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['journal','personnalites','saisir','grille'][i] === id);
+    b.classList.toggle('active', ['journal','personnalites','presidentielle','saisir','grille'][i] === id);
   });
   document.getElementById('s-' + id).classList.add('active');
+}
+
+function filtrerCandidatJournal(nom) {
+  showSection('journal');
+  document.getElementById('search').value = nom;
+  renderJournal();
 }
 
 function toggleAxe(a) {
