@@ -68,6 +68,7 @@ header {
   align-items: center;
   gap: 10px;
   text-decoration: none;
+  flex-shrink: 0;
 }
 .tricolore {
   display: flex;
@@ -91,6 +92,8 @@ header {
   opacity: .7;
   display: block;
 }
+
+/* Nav desktop */
 .nav {
   display: flex;
   gap: 2px;
@@ -106,9 +109,50 @@ header {
   font-size: 13px;
   font-weight: 500;
   transition: background .15s, color .15s;
+  white-space: nowrap;
 }
 .nav-btn:hover { background: rgba(255,255,255,.1); color: white; }
 .nav-btn.active { background: rgba(255,255,255,.18); color: white; }
+
+/* Bouton hamburger (mobile) */
+.hamburger {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: white;
+  border-radius: 2px;
+  transition: transform .2s, opacity .2s;
+}
+
+/* Menu mobile déroulant */
+.nav-mobile {
+  display: none;
+  flex-direction: column;
+  background: var(--bleu-mid);
+  padding: 8px 16px 16px;
+}
+.nav-mobile.open { display: flex; }
+.nav-mobile .nav-btn {
+  padding: 12px 16px;
+  text-align: left;
+  border-radius: var(--radius);
+  font-size: 15px;
+  color: rgba(255,255,255,.8);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.nav-mobile .nav-btn:last-child { border-bottom: none; }
+.nav-mobile .nav-btn.active { color: white; background: rgba(255,255,255,.15); }
+
 .status-dot {
   width: 7px; height: 7px; border-radius: 50%;
   display: inline-block; margin-right: 5px;
@@ -117,7 +161,7 @@ header {
 }
 .status-dot.ok { background: #4ade80; }
 .status-dot.err { background: #f87171; }
-#status-txt { font-size: 12px; color: rgba(255,255,255,.6); }
+#status-txt { font-size: 12px; color: rgba(255,255,255,.6); white-space: nowrap; }
 
 /* ── Layout ── */
 main {
@@ -376,11 +420,36 @@ main {
 .author-bar input:focus { border-color: var(--bleu); }
 .author-saved { font-size: 12px; color: var(--vert-txt); display: none; }
 
-@media (max-width: 640px) {
-  .stats-row { grid-template-columns: 1fr; }
-  .form-grid { grid-template-columns: 1fr; }
+@media (max-width: 700px) {
+  /* Header */
+  .nav { display: none; }
+  .hamburger { display: flex; }
+  #status-txt { display: none; }
   .header-inner { padding: 0 16px; }
-  main { padding: 20px 16px 48px; }
+
+  /* Layout */
+  main { padding: 16px 12px 64px; }
+  .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat-card { padding: 12px; }
+  .stat-n { font-size: 22px; }
+
+  /* Filtres */
+  .filters-bar { padding: 12px; gap: 6px; }
+  .axe-pill { font-size: 11px; padding: 3px 8px; }
+  .search-input { min-width: 100%; order: -1; }
+
+  /* Cartes */
+  .fait-card { padding: 14px; }
+  .fait-titre { font-size: 15px; }
+  .perso-grid { grid-template-columns: 1fr; }
+  .grille-grid { grid-template-columns: 1fr; }
+
+  /* Formulaire */
+  .form-grid { grid-template-columns: 1fr; }
+  .form-card { padding: 18px; }
+
+  /* Présidentielle */
+  #s-presidentielle > div:first-child + div { grid-template-columns: 1fr; }
 }
 
 /* ── Présidentielle ── */
@@ -430,11 +499,24 @@ main {
       <button class="nav-btn" onclick="showSection('saisir')">+ Saisir</button>
       <button class="nav-btn" onclick="showSection('grille')">Charte</button>
     </nav>
-    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-      <span class="status-dot" id="dot"></span>
-      <span id="status-txt">Connexion…</span>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="status-dot" id="dot"></span>
+        <span id="status-txt">Connexion…</span>
+      </div>
+      <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
+  <!-- Menu mobile -->
+  <nav class="nav-mobile" id="nav-mobile">
+    <button class="nav-btn active" onclick="showSection('journal');toggleMenu()">📰 Journal</button>
+    <button class="nav-btn" onclick="showSection('personnalites');toggleMenu()">👤 Personnalités</button>
+    <button class="nav-btn" onclick="showSection('presidentielle');toggleMenu()">🗳 Présidentielle 2027</button>
+    <button class="nav-btn" onclick="showSection('saisir');toggleMenu()">✏️ Saisir un fait</button>
+    <button class="nav-btn" onclick="showSection('grille');toggleMenu()">📋 Grille de la charte</button>
+  </nav>
 </header>
 
 <main>
@@ -906,11 +988,29 @@ async function deleteFait(id) {
 // ── Helpers ──────────────────────────────────────────────────────────────
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['journal','personnalites','presidentielle','saisir','grille'][i] === id);
+  const ids = ['journal','personnalites','presidentielle','saisir','grille'];
+  // Synchroniser les deux barres de nav (desktop + mobile)
+  document.querySelectorAll('.nav .nav-btn, .nav-mobile .nav-btn').forEach(b => {
+    b.classList.remove('active');
   });
+  const idx = ids.indexOf(id);
+  document.querySelectorAll('.nav .nav-btn')[idx]?.classList.add('active');
+  document.querySelectorAll('.nav-mobile .nav-btn')[idx]?.classList.add('active');
   document.getElementById('s-' + id).classList.add('active');
 }
+
+function toggleMenu() {
+  document.getElementById('nav-mobile').classList.toggle('open');
+}
+
+// Fermer le menu si on clique ailleurs
+document.addEventListener('click', e => {
+  const menu = document.getElementById('nav-mobile');
+  const btn = document.getElementById('hamburger');
+  if (menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('open');
+  }
+});
 
 function filtrerCandidatJournal(nom) {
   showSection('journal');
