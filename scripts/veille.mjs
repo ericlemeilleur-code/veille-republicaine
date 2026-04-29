@@ -22,11 +22,36 @@ const today = new Date().toLocaleDateString('fr-FR', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
 });
 
-const PROMPT = `Tu es l'agent de veille républicaine de l'association "Enfants de la République".
+// ── 0. Récupérer les titres déjà en base (anti-doublon) ──────────────────
+async function getTitresExistants() {
+  const hier = new Date();
+  hier.setDate(hier.getDate() - 7);
+  const dateStr = hier.toISOString().split('T')[0];
+
+  const response = await fetch(
+    `${SUPABASE_URL}/rest/v1/faits?select=titre,date_fait&date_fait=gte.${dateStr}&order=date_fait.desc`,
+    {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+      },
+    }
+  );
+  if (!response.ok) return [];
+  const data = await response.json();
+  return data.map(f => f.titre.toLowerCase().trim());
+}
+
+function buildPrompt(titresExistants) {
+  const exclusions = titresExistants.length > 0
+    ? `\nFaits déjà enregistrés cette semaine (NE PAS republier des faits similaires) :\n${titresExistants.map(t => `- ${t}`).join('\n')}\n`
+    : '';
+
+  return `Tu es l'agent de veille républicaine de l'association "Enfants de la République".
 
 Aujourd'hui nous sommes le ${today}.
 
-Ta mission : effectuer une veille de l'actualité française des 48 dernières heures et identifier 3 à 5 faits significatifs au regard de la Charte des droits et devoirs du citoyen français, qui définit 6 axes :
+Ta mission : effectuer une veille de l'actualité française des 48 dernières heures et identifier 3 à 5 faits NOUVEAUX et significatifs au regard de la Charte des droits et devoirs du citoyen français, qui définit 6 axes :
 
 - Axe A : Indivisibilité & souveraineté — unité de la République, refus du séparatisme
 - Axe B : Laïcité — séparation Églises/État, neutralité des services publics
@@ -34,6 +59,12 @@ Ta mission : effectuer une veille de l'actualité française des 48 dernières h
 - Axe D : Égalité — égalité devant la loi sans distinction d'origine, de sexe ou de religion
 - Axe E : Liberté — liberté d'expression, de la presse, droits fondamentaux
 - Axe F : Fraternité & cohésion sociale — solidarité nationale, sécurité des personnes
+${exclusions}
+RÈGLES IMPORTANTES :
+- Ne publie que des faits datant des 48 dernières heures
+- N'inclus pas de faits similaires ou identiques à ceux déjà listés ci-dessus
+- Si l'actualité est calme et qu'il n'y a pas de fait nouveau pertinent, retourne un tableau vide []
+- Chaque fait doit être sourcé par un article ou communiqué précis avec son URL
 
 Pour chaque fait, évalue le positionnement de la personnalité ou institution concernée :
 - "Proche" : conforme aux valeurs de la charte
@@ -54,9 +85,10 @@ Réponds UNIQUEMENT avec un tableau JSON valide, sans texte avant ni après, san
     "auteur": "Claude (veille automatique)"
   }
 ]`;
+}
 
 // ── 1. Appel à l'API Claude ──────────────────────────────────────────────
-async function appelClaude() {
+async function appelClaude(prompt) {
   console.log('🔍 Lancement de la veille via Claude…');
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -70,7 +102,7 @@ async function appelClaude() {
       model: 'claude-sonnet-4-20250514',
       max_tokens: 4096,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{ role: 'user', content: PROMPT }],
+      messages: [{ role: 'user', content: prompt }],
     }),
   });
 
@@ -81,7 +113,6 @@ async function appelClaude() {
 
   const data = await response.json();
 
-  // Extraire le texte de la réponse (ignorer les blocs tool_use/tool_result)
   const texte = data.content
     .filter(b => b.type === 'text')
     .map(b => b.text)
@@ -160,14 +191,49 @@ async function injecterSupabase(faits) {
   return { ok, erreurs };
 }
 
+// ── 4. Filtre anti-doublon par similarité de titre ───────────────────────
+function estDoublon(titre, titresExistants) {
+  const t = titre.toLowerCase().trim();
+  return titresExistants.some(existant => {
+    // Doublon exact
+    if (existant === t) return true;
+    // Similarité forte : les mots-clés principaux se recoupent à 70%
+    const mots = t.split(/\s+/).filter(m => m.length > 4);
+    const motsExistant = existant.split(/\s+/).filter(m => m.length > 4);
+    if (mots.length === 0) return false;
+    const communs = mots.filter(m => motsExistant.includes(m));
+    return communs.length / mots.length >= 0.7;
+  });
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────
 async function main() {
   console.log(`\n🗓  Veille républicaine — ${today}\n`);
 
   try {
-    const texte = await appelClaude();
-    const faits = parserJson(texte);
-    console.log(`✔ ${faits.length} fait(s) valides parsés.`);
+    // Récupérer les titres de la semaine pour éviter les doublons
+    const titresExistants = await getTitresExistants();
+    console.log(`📚 ${titresExistants.length} fait(s) déjà en base cette semaine.`);
+
+    const prompt = buildPrompt(titresExistants);
+    const texte = await appelClaude(prompt);
+    let faits = parserJson(texte);
+
+    // Filtrer les doublons résiduels côté client
+    const avantFiltrage = faits.length;
+    faits = faits.filter(f => {
+      if (estDoublon(f.titre, titresExistants)) {
+        console.warn(`⚠️ Doublon détecté, ignoré : ${f.titre.slice(0, 60)}`);
+        return false;
+      }
+      return true;
+    });
+    console.log(`✔ ${faits.length} fait(s) nouveaux (${avantFiltrage - faits.length} doublon(s) écartés).`);
+
+    if (faits.length === 0) {
+      console.log('ℹ️  Aucun fait nouveau aujourd\'hui. Fin de la veille.');
+      return;
+    }
 
     const { ok, erreurs } = await injecterSupabase(faits);
     console.log(`\n✔ Veille terminée : ${ok} fait(s) publié(s), ${erreurs} erreur(s).`);
