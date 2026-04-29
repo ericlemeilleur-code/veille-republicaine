@@ -3,7 +3,7 @@ name: Veille républicaine quotidienne
 on:
   # Lancement automatique chaque matin à 7h00 (heure de Paris)
   schedule:
-    - cron: '0 6 * * *'   # 6h UTC = 7h Paris (hiver) / 8h Paris (été)
+    - cron: '0 5 * * *'   # 6h UTC = 7h Paris (hiver) / 8h Paris (été)
 
   # Possibilité de lancer manuellement depuis GitHub
   workflow_dispatch:
