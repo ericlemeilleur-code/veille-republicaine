@@ -1,0 +1,30 @@
+name: Veille républicaine quotidienne
+
+on:
+  # Lancement automatique chaque matin à 7h00 (heure de Paris)
+  schedule:
+    - cron: '0 6 * * *'   # 6h UTC = 7h Paris (hiver) / 8h Paris (été)
+
+  # Possibilité de lancer manuellement depuis GitHub
+  workflow_dispatch:
+
+jobs:
+  veille:
+    name: Lancer la veille du jour
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Lancer l'agent de veille
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: node scripts/veille.mjs
