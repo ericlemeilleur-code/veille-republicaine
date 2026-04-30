@@ -1,12 +1,12 @@
 name: Veille républicaine quotidienne
 
 on:
-  # Lancement automatique chaque matin à 7h00 (heure de Paris)
   schedule:
     - cron: '0 5 * * *'   # 6h UTC = 7h Paris (hiver) / 8h Paris (été)
-
-  # Possibilité de lancer manuellement depuis GitHub
   workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   veille:
@@ -20,7 +20,7 @@ jobs:
       - name: Installer Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Lancer l'agent de veille
         env:
