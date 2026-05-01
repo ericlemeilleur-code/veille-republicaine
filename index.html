@@ -842,7 +842,6 @@ async function loadFaits() {
     document.getElementById('sn-contrib').textContent = contribs.size;
     setStatus('ok', faits.length + ' fait' + (faits.length !== 1 ? 's' : '') + ' · synchronisé');
     renderJournal();
-    renderPersos();
   } catch(e) {
     setStatus('err', 'Erreur de connexion');
   }
@@ -888,51 +887,49 @@ function renderJournal() {
 }
 
 // ── Rendu personnalités ──────────────────────────────────────────────────
-function renderPersos() {
-  const byP = {};
-  faits.forEach(f => {
-    if (!f.personnalite) return;
-    if (!byP[f.personnalite]) byP[f.personnalite] = [];
-    byP[f.personnalite].push(f);
-  });
-  const names = Object.keys(byP).sort((a,b) => byP[b].length - byP[a].length);
+async function loadAndRenderPersos() {
   const el = document.getElementById('perso-list');
-  if (!names.length) { el.innerHTML = '<div class="empty">Aucune personnalité enregistrée.</div>'; return; }
-  el.innerHTML = names.map(name => {
-    const fs = byP[name];
-    const tot = fs.length;
-    const pp = Math.round(fs.filter(f => f.positionnement === 'Proche').length / tot * 100);
-    const ep = Math.round(fs.filter(f => f.positionnement === 'Éloigné').length / tot * 100);
-    const ap = 100 - pp - ep;
-    const gl = pp >= 60 ? 'proche' : ep >= 60 ? 'éloigné' : 'ambigu';
-    const ini = name.split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-    const axes = [...new Set(fs.map(f=>f.axe))];
-    const glLabel = gl === 'proche' ? 'Proche' : gl === 'éloigné' ? 'Éloigné' : 'Ambigu';
-    return `<div class="perso-card">
-      <div class="perso-header">
-        <div class="avatar av-${gl}">${ini}</div>
-        <div style="flex:1;">
-          <div class="perso-name">${name}</div>
-          <div class="perso-count">${tot} fait${tot>1?'s':''} · <span class="badge badge-${gl.replace('é','e')}">${glLabel}</span></div>
+  el.innerHTML = '<div class="loading">Chargement…</div>';
+  try {
+    const data = await api('GET', 'personnalites?order=nom.asc');
+    if (!data || !data.length) {
+      el.innerHTML = '<div class="empty">Aucune personnalité analysée. Les fiches seront générées automatiquement lors de la prochaine veille.</div>';
+      return;
+    }
+    el.className = '';
+    el.style.display = 'grid';
+    el.style.gridTemplateColumns = 'repeat(auto-fill, minmax(340px, 1fr))';
+    el.style.gap = '20px';
+    el.innerHTML = data.map(p => {
+      const pos = (p.positionnement || 'Ambigu').toLowerCase();
+      const ini = (p.nom || '').split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+      const analyses = Array.isArray(p.analyses) ? p.analyses : [];
+      const updated = p.updated_at ? new Date(p.updated_at).toLocaleDateString('fr-FR', {day:'numeric',month:'long',year:'numeric'}) : '';
+      return `<div class="pres-card">
+        <div class="pres-header">
+          <div class="pres-avatar av-${pos}">${ini}</div>
+          <div style="flex:1;">
+            <div class="pres-name">${p.nom || ''}</div>
+            <div class="pres-parti">${p.fonction || ''}</div>
+          </div>
+          <span class="badge badge-${pos.replace('é','e')}">${p.positionnement || ''}</span>
         </div>
-      </div>
-      <div class="bar-row">
-        <div class="bar-labels"><span>Proche</span><span>${pp}%</span></div>
-        <div class="bar-bg"><div class="bar-fill" style="width:${pp}%;background:#4ade80;"></div></div>
-      </div>
-      <div class="bar-row">
-        <div class="bar-labels"><span>Éloigné</span><span>${ep}%</span></div>
-        <div class="bar-bg"><div class="bar-fill" style="width:${ep}%;background:#f87171;"></div></div>
-      </div>
-      <div class="bar-row">
-        <div class="bar-labels"><span>Ambigu</span><span>${ap}%</span></div>
-        <div class="bar-bg"><div class="bar-fill" style="width:${ap}%;background:#fbbf24;"></div></div>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:4px;flex-wrap:wrap;">
-        ${axes.map(a=>`<span class="axe-pill axe-${a}" style="cursor:default;font-size:10px;">Axe ${a}</span>`).join('')}
-      </div>
-    </div>`;
-  }).join('');
+        <div class="pres-axes">
+          ${analyses.map(a => `
+            <div class="pres-axe">
+              <span class="axe-pill axe-${a.axe}" style="cursor:default;font-size:10px;flex-shrink:0;">Axe ${a.axe}</span>
+              <span class="pres-axe-txt"><strong style="color:var(--gris-8)">${a.label}</strong> — ${a.texte}</span>
+            </div>`).join('')}
+        </div>
+        <div class="pres-footer" style="display:flex;justify-content:space-between;align-items:center;">
+          <button class="btn-sm" onclick="filtrerCandidatJournal('${p.nom.replace(/'/g,"\\'")}')">Voir les faits ↗</button>
+          ${updated ? `<span style="font-size:11px;color:var(--gris-3);">Mis à jour le ${updated}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty">Erreur de chargement des personnalités.</div>';
+  }
 }
 
 // ── Grille charte ────────────────────────────────────────────────────────
@@ -989,14 +986,12 @@ async function deleteFait(id) {
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   const ids = ['journal','personnalites','presidentielle','saisir','grille'];
-  // Synchroniser les deux barres de nav (desktop + mobile)
-  document.querySelectorAll('.nav .nav-btn, .nav-mobile .nav-btn').forEach(b => {
-    b.classList.remove('active');
-  });
+  document.querySelectorAll('.nav .nav-btn, .nav-mobile .nav-btn').forEach(b => b.classList.remove('active'));
   const idx = ids.indexOf(id);
   document.querySelectorAll('.nav .nav-btn')[idx]?.classList.add('active');
   document.querySelectorAll('.nav-mobile .nav-btn')[idx]?.classList.add('active');
   document.getElementById('s-' + id).classList.add('active');
+  if (id === 'personnalites') loadAndRenderPersos();
 }
 
 function toggleMenu() {
