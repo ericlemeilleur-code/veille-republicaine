@@ -255,16 +255,29 @@ async function main() {
     if (noms.length === 0) {
       console.log('ℹ️  Aucune personnalité en base.');
     } else {
-      console.log(`👤 ${noms.length} personnalité(s) à analyser…`);
-      for (const nom of noms) {
-        try {
-          console.log(`  → ${nom}…`);
-          const texte = await appelClaude(buildPromptPersonnalite(nom, faitsByPerso[nom]), false);
-          const analyse = extraireJson(texte);
-          await mettreAJourPersonnalite(analyse);
-          console.log(`  ✅ ${nom} (${analyse.analyses?.length || 0} axe(s) analysé(s))`);
-        } catch(e) {
-          console.error(`  ❌ ${nom} : ${e.message}`);
+      console.log(`👤 ${noms.length} personnalité(s) à analyser (pause 12s entre chaque)…`);
+      for (let i = 0; i < noms.length; i++) {
+        const nom = noms[i];
+        if (i > 0) await new Promise(r => setTimeout(r, 12000));
+        let tentatives = 0;
+        while (tentatives < 3) {
+          try {
+            console.log(`  → ${nom}…`);
+            const texte = await appelClaude(buildPromptPersonnalite(nom, faitsByPerso[nom]), false);
+            const analyse = extraireJson(texte);
+            await mettreAJourPersonnalite(analyse);
+            console.log(`  ✅ ${nom} (${analyse.analyses?.length || 0} axe(s) analysé(s))`);
+            break;
+          } catch(e) {
+            tentatives++;
+            if (e.message.includes('429') && tentatives < 3) {
+              console.warn(`  ⏳ Rate limit, nouvelle tentative dans 30s… (${tentatives}/3)`);
+              await new Promise(r => setTimeout(r, 30000));
+            } else {
+              console.error(`  ❌ ${nom} : ${e.message}`);
+              break;
+            }
+          }
         }
       }
     }
